@@ -3,7 +3,7 @@ import os
 import dj_database_url
 from decouple import config
 
-
+DEBUG = False
 
 #from dotenv import load_dotenv
 
@@ -132,7 +132,7 @@ STATICFILES_DIRS = ['static/']
 
 # White noise static stuff
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
 
