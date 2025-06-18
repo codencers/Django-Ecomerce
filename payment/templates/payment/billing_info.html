@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+<style>
+  body { background: #faf8f6; }
+  .card {
+    background: #fff;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(44, 62, 80, 0.08);
+    margin-bottom: 1.5rem;
+  }
+  .card-header {
+    background: #f7fafc;
+    border-radius: 12px 12px 0 0;
+    font-weight: 600;
+    color: #185a9d;
+    border-bottom: none;
+    font-size: 1.1rem;
+    padding: 0.8rem 1.2rem;
+  }
+  .card-body {
+    padding: 1.2rem;
+    font-size: 1rem;
+  }
+  .product-row {
+    margin-bottom: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+  }
+  .product-name {
+    font-weight: 600;
+  }
+  .product-price {
+    color: #198754;
+  }
+  .product-qty {
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+  .order-summary-total {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #185a9d;
+    margin: 1rem 0;
+    text-align: right;
+  }
+  .btn-outline-secondary {
+    border-radius: 8px;
+    padding: 0.4rem 1rem;
+    font-size: 0.95rem;
+  }
+  .btn-secondary, .btn-primary {
+    border-radius: 8px;
+    font-weight: 600;
+    padding: 0.7rem 1.5rem;
+    font-size: 1.1rem;
+    box-shadow: 0 2px 8px rgba(24,90,157,0.07);
+    margin-top: 0.6rem;
+    border: none;
+  }
+  .btn-secondary {
+    background: linear-gradient(90deg, #185a9d 60%, #43cea2 100%);
+    color: #fff;
+  }
+  .btn-secondary:hover {
+    background: linear-gradient(90deg, #43cea2 0%, #185a9d 100%);
+    color: #fff;
+  }
+  .btn-primary {
+    background: #185a9d;
+    color: #fff;
+  }
+  .btn-primary:hover {
+    background: #43cea2;
+    color: #fff;
+  }
+  .paypal-center {
+    margin: 2rem 0;
+    text-align: center;
+  }
+</style>
+
+<!-- Header -->
+
+<br/>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+
+      <!-- Order Summary Card -->
+      <div class="card">
+        <div class="card-header">
+          <i class="fas fa-file-invoice-dollar me-2"></i> Order Summary
+        </div>
+        <div class="card-body">
+          {% for product in cart_products %}
+            <div class="product-row">
+              <div>
+                <span class="product-name">{{ product.name }}</span>
+                <span class="product-qty">
+                  (Qty: 
+                  {% for key, value in quantities.items %}
+                    {% if key == product.id|slugify %}
+                      {{ value }}
+                    {% endif %}
+                  {% endfor %}
+                  )
+                </span>
+              </div>
+              <span class="product-price">
+                {% if product.is_sale %}
+                  ₹{{ product.sale_price }}
+                {% else %}
+                  ₹{{ product.price }}
+                {% endif %}
+              </span>
+            </div>
+          {% endfor %}
+          <div class="order-summary-total">
+            {% if discounted_price %}
+              Final Discounted Price: <strong>₹{{ discounted_price }}</strong>
+            {% else %}
+              Total: <strong>₹{{ totals }}</strong>
+            {% endif %}
+          </div>
+          <a href="{% url 'cart_summary' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-pencil-alt me-1"></i> Update Items
+          </a>
+        </div>
+      </div>
+
+      <!-- Shipping Info Card -->
+      <div class="card">
+        <div class="card-header">
+          <i class="fas fa-shipping-fast me-2"></i> Shipping Info
+        </div>
+        <div class="card-body">
+          <div><strong>Name:</strong> {{ shipping_info.shipping_full_name }}</div>
+          <div><strong>Email:</strong> {{ shipping_info.shipping_email }}</div>
+          <div><strong>Address 1:</strong> {{ shipping_info.shipping_address1 }}</div>
+          <div><strong>Address 2:</strong> {{ shipping_info.shipping_address2 }}</div>
+          <div><strong>City:</strong> {{ shipping_info.shipping_city }}</div>
+          <div><strong>State:</strong> {{ shipping_info.shipping_state }}</div>
+          <div><strong>Zipcode:</strong> {{ shipping_info.shipping_zipcode }}</div>
+          <div><strong>Country:</strong> {{ shipping_info.shipping_country }}</div>
+          <br/>
+          <a href="{% url 'checkout' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-edit me-1"></i> Update Shipping
+          </a>
+        </div>
+      </div>
+
+      <!-- PayPal Form -->
+      <div class="paypal-center">
+        {{ paypal_form.render }}
+      </div>
+
+      <!-- Billing Info Card -->
+      <div class="card">
+        <div class="card-header">
+          <i class="fas fa-credit-card me-2"></i> Billing Info
+        </div>
+        <div class="card-body">
+          <form method="POST" action="{% url 'process_order' %}">
+            {% csrf_token %}
+            {{ billing_form.as_p }}
+            {% if user.is_authenticated %}
+              <button type="submit" class="btn btn-secondary">
+                <i class="fas fa-credit-card me-1"></i> Pay Now
+              </button>
+            {% else %}
+              <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt me-1"></i> Login to Pay
+              </a>
+            {% endif %}
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

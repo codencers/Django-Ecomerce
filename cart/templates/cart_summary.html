@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<!-- Header -->
+<!-- Add vertical gap after header -->
+<div style="height: 32px;"></div>
+
+<div class="container">
+{% if cart_products %}
+    <div class="row">
+        <div class="col-md-8">
+            {% for product in cart_products %}
+            <div class="card mb-3 shadow-sm border-0 rounded-4" style="background: #fff;">
+                <div class="row g-0 align-items-center">
+                    <div class="col-md-2 text-center">
+                        <img src="{{ product.image.url }}" class="img-fluid rounded-3" alt="{{ product.name }}" style="width:60px; height:60px; object-fit:cover;">
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card-body py-3">
+                            <div class="fw-bold fs-5">{{ product.name }}</div>
+                            <div class="text-muted small mb-2">Size: {{ product.size }} | Color: {{ product.color }}</div>
+                            <div id="unit-price-{{product.id}}" class="fw-bold fs-6"></div>
+                            <div id="discount-info-{{product.id}}" class="text-success small"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <label for="qty-{{product.id}}" class="form-label mb-0">Quantity</label>
+                        <input 
+                            type="number" 
+                            min="1" 
+                            value="{{ quantities.product.id|default:1 }}"
+                            class="form-control form-control-sm mx-auto text-center" 
+                            id="qty-{{product.id}}" 
+                            style="width:80px;"
+                            data-product="{{product.id}}"
+                        >
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="d-flex justify-content-center gap-2">
+                            <button type="button" data-index="{{product.id}}" class="btn btn-light btn-sm update-cart">Update</button>
+                            <button type="button" data-index="{{product.id}}" class="btn btn-danger btn-sm delete-product">Remove</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="col-md-4">
+            <div class="order-summary p-4 rounded-4 shadow-sm" style="background:#fff;">
+                <h5 class="mb-3">Order Summary</h5>
+                <div class="d-flex justify-content-between">
+                    <span>Subtotal</span>
+                    <span id="subtotal">₹0</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Discount</span>
+                    <span id="discount" class="text-danger">-₹0</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Delivery Fee</span>
+                    <span id="delivery">₹15</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between fw-bold">
+                    <span>Total</span>
+                    <span id="total">₹0</span>
+                </div>
+                <div class="input-group my-3">
+                    <input type="text" class="form-control" placeholder="Add promo code">
+                    <button class="btn btn-dark">Apply</button>
+                </div>
+                <form method="POST" action="{% url 'checkout' %}" id="checkout-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="discounted_price" id="discounted-price-input">
+                    <button type="submit" class="btn btn-dark w-100 checkout-btn">Go to Checkout &rarr;</button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <h4>There's Nothing In Your Cart...</h4>
+    </div>
+{% endif %}
+</div>
+
+<!-- Add vertical gap before footer -->
+<div style="height: 48px;"></div>
+
+<script>
+// Bulk Pricing Data (can also be passed from Django context)
+const bulkPricing = [
+    { min: 2000, price: 4.70, discount: 30.47 },
+    { min: 1000, price: 5.12, discount: 24.26 },
+    { min: 500, price: 5.63, discount: 16.77 },
+    { min: 350, price: 6.21, discount: 8.14 },
+    { min: 1, price: 6.76, discount: 0 }
+];
+bulkPricing.sort((a, b) => b.min - a.min);
+
+function getPriceTier(qty) {
+    for (let i = 0; i < bulkPricing.length; i++) {
+        if (qty >= bulkPricing[i].min) {
+            return bulkPricing[i];
+        }
+    }
+    return bulkPricing[bulkPricing.length - 1];
+}
+
+function updateProductPrice(productId, qty) {
+    const tier = getPriceTier(qty);
+    const originalUnit = 6.76;
+    const unitPrice = tier.price;
+    const discount = tier.discount;
+    const discountAmount = ((originalUnit - unitPrice) * qty).toFixed(2);
+
+    document.getElementById(`unit-price-${productId}`).textContent = `Unit Price: ₹${unitPrice.toFixed(2)}`;
+    document.getElementById(`discount-info-${productId}`).textContent = discount > 0 ? `You save ₹${discountAmount} (${discount}% off)` : '';
+    return { unitPrice, discountAmount, discount };
+}
+
+function updateSummary() {
+    let subtotal = 0;
+    let totalDiscount = 0;
+    let delivery = 15;
+    document.querySelectorAll('input[type=number][id^="qty-"]').forEach(input => {
+        const qty = parseInt(input.value) || 1;
+        const productId = input.dataset.product;
+        const { unitPrice, discountAmount } = updateProductPrice(productId, qty);
+        subtotal += unitPrice * qty;
+        totalDiscount += parseFloat(discountAmount);
+    });
+    document.getElementById('subtotal').textContent = `₹${subtotal.toFixed(2)}`;
+    document.getElementById('discount').textContent = `-₹${totalDiscount.toFixed(2)}`;
+    document.getElementById('delivery').textContent = `₹${delivery}`;
+    document.getElementById('total').textContent = `₹${(subtotal + delivery).toFixed(2)}`;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('input[type=number][id^="qty-"]').forEach(input => {
+        input.addEventListener('input', updateSummary);
+        // Initial update for each product
+        const productId = input.dataset.product;
+        updateProductPrice(productId, parseInt(input.value) || 1);
+    });
+    updateSummary();
+
+    // Set discounted price before form submit
+    document.getElementById('checkout-form').addEventListener('submit', function(e) {
+        const discountedPrice = document.getElementById('total').textContent.replace('₹', '');
+        document.getElementById('discounted-price-input').value = discounted_price;
+    });
+});
+
+// Update Cart (AJAX)
+$(document).on('click', '.update-cart', function(e){
+    e.preventDefault();
+    var productid = $(this).data('index');
+    var qty = $('#qty-' + productid).val();
+    $.ajax({
+        type: 'POST',
+        url: '{% url "cart_update" %}',
+        data: {
+            product_id: productid,
+            product_qty: qty,
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+            action: 'post'
+        },
+        success: function(json){
+            location.reload();
+        }
+    });
+});
+
+// Delete Item From Cart (AJAX)
+$(document).on('click', '.delete-product', function(e){
+    e.preventDefault();
+    $.ajax({
+        type: 'POST',
+        url: '{% url "cart_delete" %}',
+        data: {
+            product_id: $(this).data('index'),
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+            action: 'post'
+        },
+        success: function(json){
+            location.reload();
+        }
+    });
+});
+</script>
+
+<style>
+body { background: #faf8f6; }
+.card { border: none; }
+.order-summary { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px #eee; }
+.checkout-btn { border-radius: 25px; font-weight: bold; }
+.d-flex.gap-2 > * { margin-right: 0.5rem; }
+.d-flex.gap-2 > *:last-child { margin-right: 0; }
+</style>
+{% endblock %}

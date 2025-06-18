@@ -1,0 +1,419 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<style>
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #f2f8fc;
+}
+.ecolink-logo-bar {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 28px 0 0 0;
+  background: transparent;
+  position: relative;
+  z-index: 2;
+}
+.ecolink-logo-bar img {
+  width: 180px;
+  height: auto;
+  max-width: 90vw;
+  object-fit: contain;
+}
+.auth-bg {
+  min-height: calc(100vh - 120px - 70px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 0 32px 0;
+}
+.flip-card-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 480px;
+}
+.flip-card {
+  background: transparent;
+  width: 400px;
+  max-width: 98vw;
+  min-height: 630px;
+  height: auto;
+  max-height: 95vh;
+  perspective: 1200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  min-height: 630px;
+  height: auto;
+  max-height: 95vh;
+  transition: transform 0.7s cubic-bezier(.4,2.3,.3,1);
+  transform-style: preserve-3d;
+}
+.flipped {
+  transform: rotateY(180deg);
+}
+.flip-card-front, .flip-card-back {
+  position: absolute;
+  width: 100%;
+  min-height: 630px;
+  height: auto;
+  max-height: 95vh;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 40px rgba(44, 62, 80, 0.13);
+  padding: 36px 28px 24px 28px;
+  text-align: left;
+  backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+.flip-card-back { transform: rotateY(180deg); }
+.tab-row {
+  display: flex;
+  margin-bottom: 22px;
+  gap: 0;
+}
+.tab {
+  flex: 1;
+  padding: 12px 0;
+  background: none;
+  border: none;
+  border-bottom: 2.5px solid transparent;
+  font-size: 1.09rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #185a9d;
+  transition: border 0.2s, background 0.2s;
+  outline: none;
+  letter-spacing: 0.01em;
+}
+.tab.active {
+  border-bottom: 2.5px solid #185a9d;
+  background: #f3fafd;
+  color: #185a9d;
+}
+.auth-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  flex: 1 1 auto;
+}
+.auth-group {
+  margin-bottom: 16px;
+  position: relative;
+}
+.auth-group label {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+.auth-group i.fa {
+  position: absolute;
+  left: 13px;
+  color: #b0b3b8;
+  font-size: 1rem;
+}
+.auth-group input {
+  width: 100%;
+  padding: 12px 12px 12px 40px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 7px;
+  font-size: 1rem;
+  background: #f9fafb;
+  outline: none;
+  transition: border 0.2s;
+}
+.auth-group input:focus {
+  border-color: #43cea2;
+  background: #fff;
+}
+.toggle-password {
+  right: 13px;
+  left: auto;
+  position: absolute;
+  cursor: pointer;
+  color: #b0b3b8;
+}
+.auth-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 7px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.auth-btn.primary {
+  width: 100%;
+  padding: 13px 0;
+  background: #185a9d;
+  color: #fff;
+  margin-top: 8px;
+  margin-bottom: 16px;
+  white-space: normal;
+  word-break: break-word;
+  font-size: 1.07rem;
+}
+.auth-btn.primary:hover {
+  background: #43cea2;
+}
+.auth-divider {
+  text-align: center;
+  color: #b0b3b8;
+  font-size: 0.96rem;
+  margin: 18px 0 10px 0;
+  position: relative;
+  width: 100%;
+}
+.auth-divider:before, .auth-divider:after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background: #e5e7eb;
+}
+.auth-divider:before { left: 0; }
+.auth-divider:after { right: 0; }
+.auth-social-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+  width: 100%;
+}
+.auth-btn.secondary {
+  flex: 1;
+  padding: 10px 0;
+  background: #f3fafd;
+  border: 1px solid #e5e7eb;
+  color: #185a9d;
+  font-size: 1rem;
+  font-weight: 500;
+  white-space: normal;
+  word-break: break-word;
+}
+.auth-btn.secondary:hover {
+  background: #e7f3ef;
+}
+.auth-link-row {
+  text-align: center;
+  font-size: 0.98rem;
+  color: #6b7280;
+  margin-top: 6px;
+  width: 100%;
+  white-space: normal;
+  word-break: break-word;
+}
+.auth-link-row a {
+  color: #185a9d;
+  text-decoration: none;
+  font-weight: 500;
+}
+.auth-link-row a:hover {
+  text-decoration: underline;
+}
+@media (max-width: 500px) {
+  .ecolink-logo-bar img {
+    width: 120px;
+  }
+  .flip-card {
+    width: 98vw;
+    min-height: 520px;
+    height: auto;
+    max-height: 98vh;
+  }
+  .flip-card-front, .flip-card-back {
+    padding: 12px 2vw 12px 2vw;
+    min-height: 520px;
+    height: auto;
+    max-height: 98vh;
+  }
+  .auth-social-row {
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .auth-btn.secondary {
+    width: 100%;
+    min-width: 0;
+    margin-bottom: 0;
+  }
+}
+</style>
+
+<!-- EcoLink Logo at Top -->
+<div class="ecolink-logo-bar">
+  <img src="{% static 'assets/img/generated-image .png' %}" alt="EcoLink Logo">
+</div>
+
+<div class="auth-bg">
+  <div class="flip-card-container">
+    <div class="flip-card" id="flip-card">
+      <div class="flip-card-inner" id="flip-card-inner">
+        <!-- Front: Customer Registration -->
+        <div class="flip-card-front">
+          <div class="tab-row">
+            <button type="button" class="tab active" id="customer-tab-front">I'm Customer</button>
+            <button type="button" class="tab" id="seller-tab-front">I'm Seller</button>
+          </div>
+          <form method="POST" action="{% url 'register' %}" class="auth-form" autocomplete="off">
+            {% csrf_token %}
+            <div class="auth-group">
+              <label>
+                <i class="fa fa-user"></i>
+                <input type="text" name="username" placeholder="Username" required>
+              </label>
+            </div>
+            <div class="auth-group">
+              <label>
+                <i class="fa fa-envelope"></i>
+                <input type="email" name="email" placeholder="Email" required>
+              </label>
+            </div>
+            <div class="auth-group">
+              <label>
+                <i class="fa fa-lock"></i>
+                <input type="password" name="password1" placeholder="Password" required>
+                <i class="fa fa-eye toggle-password"></i>
+              </label>
+            </div>
+            <div class="auth-group">
+              <label>
+                <i class="fa fa-lock"></i>
+                <input type="password" name="password2" placeholder="Confirm Password" required>
+                <i class="fa fa-eye toggle-password"></i>
+              </label>
+            </div>
+            <button type="submit" class="auth-btn primary">
+              Register as Customer <i class="fa fa-arrow-right"></i>
+            </button>
+            <div class="auth-divider">Or continue with</div>
+            <div class="auth-social-row">
+              <button type="button" class="auth-btn secondary"><i class="fa fa-phone"></i> Phone</button>
+              <button type="button" class="auth-btn secondary"><i class="fa fa-google"></i> Google</button>
+            </div>
+            <div class="auth-link-row">
+              Already have an account? <a href="{% url 'login' %}">Login</a>
+            </div>
+          </form>
+        </div>
+        <!-- Back: Seller Registration (NO slider, fixed UI) -->
+        <div class="flip-card-back">
+          <div class="tab-row">
+            <button type="button" class="tab" id="customer-tab-back">I'm Customer</button>
+            <button type="button" class="tab active" id="seller-tab-back">I'm Seller</button>
+          </div>
+          <form method="POST" action="{% url 'register' %}" class="auth-form" autocomplete="off">
+            {% csrf_token %}
+            <div class="auth-group">
+              <label>
+                <i class="fa fa-user"></i>
+                <input type="text" name="username" placeholder="Username" required>
+              </label>
+            </div>
+            <div class="auth-group">
+              <label>
+                <i class="fa fa-envelope"></i>
+                <input type="email" name="email" placeholder="Email" required>
+              </label>
+            </div>
+           
+            <div class="auth-group">
+              <label>
+                <i class="fa fa-lock"></i>
+                <input type="password" name="password1" placeholder="Password" required>
+                <i class="fa fa-eye toggle-password"></i>
+              </label>
+            </div>
+            <div class="auth-group">
+              <label>
+                <i class="fa fa-lock"></i>
+                <input type="password" name="password2" placeholder="Confirm Password" required>
+                <i class="fa fa-eye toggle-password"></i>
+              </label>
+            </div>
+            <button type="submit" class="auth-btn primary">
+              Register as Seller <i class="fa fa-arrow-right"></i>
+            </button>
+            <div class="auth-divider">Or continue with</div>
+            <div class="auth-social-row">
+              <button type="button" class="auth-btn secondary"><i class="fa fa-phone"></i> Phone</button>
+              <button type="button" class="auth-btn secondary"><i class="fa fa-google"></i> Google</button>
+            </div>
+            <div class="auth-link-row">
+              Already have an account? <a href="{% url 'login' %}">Login</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Flip logic
+const flipCardInner = document.getElementById('flip-card-inner');
+const customerTabFront = document.getElementById('customer-tab-front');
+const sellerTabFront = document.getElementById('seller-tab-front');
+const customerTabBack = document.getElementById('customer-tab-back');
+const sellerTabBack = document.getElementById('seller-tab-back');
+
+function flipToSeller() {
+  flipCardInner.classList.add('flipped');
+  sellerTabBack.classList.add('active');
+  customerTabBack.classList.remove('active');
+  sellerTabFront.classList.add('active');
+  customerTabFront.classList.remove('active');
+}
+function flipToCustomer() {
+  flipCardInner.classList.remove('flipped');
+  customerTabFront.classList.add('active');
+  sellerTabFront.classList.remove('active');
+  customerTabBack.classList.add('active');
+  sellerTabBack.classList.remove('active');
+}
+sellerTabFront.addEventListener('click', flipToSeller);
+sellerTabBack.addEventListener('click', flipToSeller);
+customerTabFront.addEventListener('click', flipToCustomer);
+customerTabBack.addEventListener('click', flipToCustomer);
+
+// Password visibility toggle
+document.querySelectorAll('.toggle-password').forEach(icon => {
+  icon.addEventListener('click', function() {
+    const input = this.previousElementSibling;
+    if (input.type === "password") {
+      input.type = "text";
+      this.classList.add('fa-eye-slash');
+      this.classList.remove('fa-eye');
+    } else {
+      input.type = "password";
+      this.classList.add('fa-eye');
+      this.classList.remove('fa-eye-slash');
+    }
+  });
+});
+</script>
+{% endblock %}

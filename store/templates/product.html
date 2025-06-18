@@ -1,0 +1,450 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<style>
+/* --- UI from paste.txt, transitions, colors, etc. --- */
+* { box-sizing: border-box; }
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  color: #334155;
+  line-height: 1.6;
+}
+header, footer {
+  border-bottom: none !important;
+  border-top: none !important;
+  box-shadow: none !important;
+}
+header *, footer * {
+  text-decoration: none !important;
+  border-bottom: none !important;
+}
+.main-container {
+  min-height: 100vh;
+  max-width: 1400px;
+  margin: 0 auto;
+  animation: fadeIn 0.7s cubic-bezier(.4,2.3,.3,1);
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(30px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+.custom-breadcrumb {
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  font-size: 0.9rem;
+}
+.custom-breadcrumb a { color: #64748b; transition: color 0.2s ease; text-decoration: none;}
+.custom-breadcrumb a:hover { color: #059669; }
+.breadcrumb-item.active { color: #1e293b; font-weight: 500; }
+.product-image-container { position: relative; }
+.product-image {
+  width: 100%; height: auto; border-radius: 1rem;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+  background: white; border: 1px solid #e2e8f0;
+}
+.product-image:hover { transform: scale(1.02); box-shadow: 0 20px 40px rgba(0,0,0,0.15);}
+.wishlist-btn {
+  position: absolute; top: 1rem; right: 1rem;
+  width: 45px; height: 45px; border-radius: 50%;
+  background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.3s; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.wishlist-btn:hover { background: white; transform: scale(1.1); box-shadow: 0 6px 20px rgba(0,0,0,0.15);}
+.wishlist-btn i { font-size: 1.2rem; color: #64748b; transition: all 0.3s; }
+.wishlist-btn.liked i { color: #ef4444; }
+.product-title { font-size: 2rem; font-weight: 700; color: #1e293b; line-height: 1.3; margin-bottom: 1.5rem; }
+.eco-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.eco-badge {
+  padding: 0.5rem 1rem; border-radius: 2rem; font-weight: 500;
+  font-size: 0.85rem; border: none; transition: all 0.3s;
+}
+.eco-badge:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15);}
+.compostable { background: linear-gradient(135deg, #dcfce7, #bbf7d0); color: #166534;}
+.recyclable { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1e40af;}
+.sustainable { background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #065f46;}
+.eco-friendly { background: linear-gradient(135deg, #d0fdf4, #99f6e4); color: #134e4a;}
+.card {
+  border: none; border-radius: 1rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  transition: all 0.3s; background: white;
+}
+.card:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.1); transform: translateY(-2px);}
+.card-header {
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  border-bottom: 1px solid #e2e8f0;
+  border-radius: 1rem 1rem 0 0 !important;
+  padding: 1.25rem;
+}
+.card-title { color: #1e293b; font-weight: 600; margin: 0; }
+.pricing-card { background: linear-gradient(135deg, #ecfdf5, #d1fae5); border: 2px solid #a7f3d0; }
+.total-price { font-size: 2.5rem; font-weight: 700; color: #059669; }
+.price-label { font-size: 1.1rem; color: #64748b; font-weight: 500; }
+.per-piece-price { color: #64748b; font-weight: 500; }
+.discount-badge {
+  background: linear-gradient(135deg, #fef2f2, #fecaca);
+  color: #dc2626; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 1rem;
+}
+.quantity-input {
+  width: 120px; border-radius: 0.5rem; border: 2px solid #e2e8f0;
+  padding: 0.75rem; font-weight: 500; transition: all 0.3s;
+}
+.quantity-input:focus { border-color: #059669; box-shadow: 0 0 0 3px rgba(5,150,105,0.1);}
+.btn-cart {
+  background: linear-gradient(135deg, #059669, #047857);
+  border: none; color: white; font-weight: 600;
+  padding: 0.875rem 1.5rem; border-radius: 0.75rem;
+  transition: all 0.3s;
+}
+.btn-cart:hover {
+  background: linear-gradient(135deg, #047857, #065f46);
+  transform: translateY(-2px); box-shadow: 0 8px 20px rgba(5,150,105,0.3); color: white;
+}
+.btn-buy {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  border: none; color: white; font-weight: 600;
+  padding: 0.875rem 1.5rem; border-radius: 0.75rem; transition: all 0.3s;
+}
+.btn-buy:hover {
+  background: linear-gradient(135deg, #ea580c, #dc2626);
+  transform: translateY(-2px); box-shadow: 0 8px 20px rgba(249,115,22,0.3); color: white;
+}
+.discount-table { margin: 0; }
+.discount-table th {
+  background: #f8fafc; color: #475569; font-weight: 600; border: none; padding: 1rem 0.75rem;
+}
+.discount-table td {
+  padding: 1rem 0.75rem; border: none; border-bottom: 1px solid #f1f5f9;
+}
+.discount-table tr:hover { background: #f8fafc; }
+.discount-tier {
+  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+  color: #059669; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 1rem;
+}
+.spec-list { display: flex; flex-direction: column; gap: 0.75rem; }
+.spec-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.75rem 0; border-bottom: 1px solid #f1f5f9;
+}
+.spec-item:last-child { border-bottom: none; }
+.spec-label { color: #64748b; font-weight: 500; flex: 1; }
+.spec-value { color: #1e293b; font-weight: 600; text-align: right; }
+.description-text { color: #475569; line-height: 1.7; margin-bottom: 1.5rem; }
+.eco-benefits {
+  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+  padding: 1.25rem; border-radius: 0.75rem; border: 1px solid #a7f3d0;
+}
+.eco-benefits-title { color: #065f46; font-weight: 600; margin-bottom: 0.75rem; }
+.eco-benefits-list { margin: 0; padding-left: 1.25rem; color: #047857; }
+.eco-benefits-list li { margin-bottom: 0.25rem; font-weight: 500; }
+.review-placeholder { padding: 2rem; }
+.review-placeholder i { opacity: 0.3; }
+@media (max-width: 768px) {
+  .product-title { font-size: 1.5rem; }
+  .total-price { font-size: 2rem; }
+  .eco-badges { justify-content: center; }
+  .d-md-flex .btn { margin-bottom: 0.5rem; }
+  .spec-item { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+  .spec-value { text-align: left; }
+}
+.fade-in { animation: fadeIn 0.5s ease-in; }
+</style>
+
+<div class="main-container">
+  <div class="container-fluid px-4 py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+      <ol class="breadcrumb custom-breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-decoration-none">Home</a></li>
+        <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Products</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+      </ol>
+    </nav>
+
+    <div class="row g-5 mb-5">
+      <!-- Product Image -->
+      <div class="col-lg-6">
+        <div class="product-image-container">
+          <div class="position-relative">
+            <img src="{{ product.image.url }}" class="img-fluid product-image" alt="{{ product.name }}">
+            <button class="btn wishlist-btn" id="wishlistBtn">
+              <i class="far fa-heart" id="heartIcon"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product Info & Actions -->
+      <div class="col-lg-6">
+        <div class="product-info">
+          <h1 class="product-title">{{ product.name }}</h1>
+          <div class="eco-badges mb-4">
+            <span class="badge eco-badge compostable"><i class="fas fa-leaf me-1"></i>Compostable</span>
+            <span class="badge eco-badge recyclable"><i class="fas fa-recycle me-1"></i>Recyclable</span>
+           <span class="badge eco-badge sustainable"><i class="fas fa-shield-alt me-1"></i>Sustainable</span>
+            <span class="badge eco-badge eco-friendly"><i class="fas fa-seedling me-1"></i>Eco Friendly</span>
+          </div>
+
+          <!-- Pricing Card -->
+          <div class="card pricing-card mb-4">
+            <div class="card-body">
+              <div class="d-flex align-items-baseline mb-2">
+               <span class="total-price">₹<span id="totalPrice">{{ product.price }}</span></span>
+                <span class="product-strike ms-3" id="strikePrice" style="display:none;"></span>
+                <span class="price-label ms-3">Total Price</span>
+              </div>
+              <div class="d-flex align-items-center gap-3">
+                <span class="per-piece-price">Price per piece: ₹<span id="perPiece">{{ product.price }}</span></span>
+                <span class="badge discount-badge" id="discountBadge" style="display: none;">
+                  <span id="discount">0</span>% OFF
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quantity and Actions -->
+          <div class="card action-card mb-4">
+            <div class="card-body">
+              <form id="orderForm">
+                <div class="mb-4">
+                  <label for="quantity" class="form-label fw-semibold">Update Quantity</label>
+                  <input type="number" class="form-control quantity-input" id="quantity" value="1" min="1">
+                </div>
+                <div class="d-grid gap-2 d-md-flex">
+                  <a href="{% url 'home' %}" class="btn btn-cart flex-fill">
+                    <i class="fas fa-home me-2"></i>HOME
+                  </a>
+                  <button type="button" class="btn btn-buy flex-fill" id="buyNowBtn" value="{{ product.id }}">
+                    <i class="fas fa-shopping-cart me-2"></i>ADD TO CART
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Bulk Discount Table -->
+          <div class="card discount-table-card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">
+                <i class="fas fa-bullseye me-2 text-warning"></i>Get % discount on Bulk Orders!
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-hover discount-table">
+                  <thead>
+                    <tr>
+                      <th>Quantity</th>
+                      <th>Discount</th>
+                      <th>Per piece</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="fw-semibold">350+</td>
+                      <td><span class="badge discount-tier">8.14%</span></td>
+                      <td class="fw-bold text-success">₹6.21</td>
+                    </tr>
+                    <tr>
+                      <td class="fw-semibold">500+</td>
+                      <td><span class="badge discount-tier">16.77%</span></td>
+                      <td class="fw-bold text-success">₹5.63</td>
+                    </tr>
+                    <tr>
+                      <td class="fw-semibold">1000+</td>
+                      <td><span class="badge discount-tier">24.26%</span></td>
+                      <td class="fw-bold text-success">₹5.12</td>
+                    </tr>
+                    <tr>
+                      <td class="fw-semibold">2000+</td>
+                      <td><span class="badge discount-tier">30.47%</span></td>
+                      <td class="fw-bold text-success">₹4.70</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Specifications and Description -->
+    <div class="row g-4 mb-5">
+      <div class="col-lg-6">
+        <div class="card spec-card h-100">
+          <div class="card-header">
+            <h5 class="card-title mb-0">
+              <i class="fas fa-clipboard-list me-2"></i>Specifications
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="spec-list">
+              <div class="spec-item"><span class="spec-label">Product By</span><span class="spec-value">Papro</span></div>
+              <div class="spec-item"><span class="spec-label">Material Name</span><span class="spec-value">Newspaper</span></div>
+              <div class="spec-item"><span class="spec-label">GSM / Weight carrying capacity</span><span class="spec-value">4Layer-4kg</span></div>
+              <div class="spec-item"><span class="spec-label">Style</span><span class="spec-value">Square</span></div>
+              <div class="spec-item"><span class="spec-label">Product Color</span><span class="spec-value">White</span></div>
+              <div class="spec-item"><span class="spec-label">Size</span><span class="spec-value">8W x 8H x 5G</span></div>
+              <div class="spec-item"><span class="spec-label">Handle Type</span><span class="spec-value">Jute Rope</span></div>
+              <div class="spec-item"><span class="spec-label">Handle Size</span><span class="spec-value">4.5H Inches</span></div>
+              <div class="spec-item"><span class="spec-label">Handle Colour</span><span class="spec-value">Brown</span></div>
+              <div class="spec-item"><span class="spec-label">Gusset</span><span class="spec-value">Side Gusset</span></div>
+              <div class="spec-item"><span class="spec-label">Lamination</span><span class="spec-value">No</span></div>
+              <div class="spec-item"><span class="spec-label">Origin of Product</span><span class="spec-value">India</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card desc-card h-100">
+          <div class="card-header">
+            <h5 class="card-title mb-0">
+              <i class="fas fa-file-alt me-2"></i>Description
+            </h5>
+          </div>
+          <div class="card-body">
+            <p class="description-text">
+              {{ product.description }}
+            </p>
+            <div class="eco-benefits">
+              <h6 class="eco-benefits-title">
+                <i class="fas fa-seedling me-2"></i>Eco-Friendly Benefits
+              </h6>
+              <ul class="eco-benefits-list">
+                <li>Made from recycled newspaper</li>
+                <li>Biodegradable and compostable</li>
+                <li>Reduces plastic waste</li>
+                <li>Sustainable packaging solution</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Customer Reviews -->
+    <div class="card review-card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">
+          <i class="fas fa-star text-warning me-2"></i>Customer Reviews
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="text-center py-4">
+          <div class="review-placeholder">
+            <i class="fas fa-star fa-3x text-muted mb-3"></i>
+            <p class="text-muted mb-3">No reviews yet</p>
+            <button class="btn btn-outline-primary" id="writeReviewBtn">
+              <i class="fas fa-pen me-2"></i>WRITE A REVIEW
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+const bulkPricing = [
+  { min: 1000, price: 5.12, discount: 24.26 },
+  { min: 2000, price: 4.70, discount: 30.47},
+  { min: 500, price: 5.63, discount: 16.77 },
+  { min: 350, price: 6.21, discount: 8.14 },
+  { min: 1, price: 6.76, discount: 0 }
+];
+
+// Get the best price per unit for the selected quantity
+function getPriceTier(qty) {
+  for (let i = 0; i < bulkPricing.length; i++) {
+    if (qty >= bulkPricing[i].min) {
+      return bulkPricing[i];
+    }
+  }
+  return bulkPricing[bulkPricing.length - 1];
+}
+
+// Update price and per-piece price when quantity changes (UI only)
+function updatePriceUI() {
+  const qty = parseInt($('#quantity').val()) || 1;
+  const tier = getPriceTier(qty);
+  const total = tier.price * qty;
+
+  $('#totalPrice').text(total.toLocaleString());
+  $('#perPiece').text(tier.price.toLocaleString());
+  if (tier.discount > 0) {
+    $('#discountBadge').show();
+    $('#discount').text(tier.discount);
+    $('#strikePrice').show().html('<strike>₹' + (6.76 * qty).toLocaleString() + '</strike>');
+  } else {
+    $('#discountBadge').hide();
+    $('#strikePrice').hide();
+  }
+}
+
+// On quantity change, update price (UI only)
+$('#quantity').on('input change', updatePriceUI);
+
+// Click on bulk table row sets quantity and updates price (UI only)
+$('#bulkTable tbody tr').on('click', function() {
+  const minQty = $(this).data('min');
+  $('#quantity').val(minQty).trigger('input');
+  $('#bulkTable tbody tr').removeClass('table-success');
+  $(this).addClass('table-success');
+});
+
+// Wishlist toggle
+let isWishlisted = false;
+$('#wishlistBtn').on('click', function() {
+  isWishlisted = !isWishlisted;
+  $('#heartIcon').toggleClass('fas far').toggleClass('liked', isWishlisted);
+});
+
+// Add to Cart AJAX (sends only product ID and quantity; backend uses original price)
+$(document).on('click', '#buyNowBtn', function(e){
+    e.preventDefault();
+    const productId = $(this).val();
+    const productQty = $('#quantity').val();
+    $.ajax({
+        type: 'POST',
+        url: '{% url "cart_add" %}',
+        data: {
+            product_id: productId,
+            product_qty: productQty,
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+            action: 'post'
+        },
+        success: function(json){
+            if(document.getElementById("cart_quantity")){
+                document.getElementById("cart_quantity").textContent = json.qty;
+            }
+            const n = document.createElement('div');
+            n.className = "alert alert-success position-fixed";
+            n.style.top = "20px"; n.style.right = "20px"; n.style.zIndex = 1050;
+            n.innerHTML = '<i class="fa fa-check-circle me-2"></i>Added to cart!';
+            document.body.appendChild(n);
+            setTimeout(()=>n.remove(),2000);
+        },
+        error: function(xhr, errmsg, err){
+            const n = document.createElement('div');
+            n.className = "alert alert-danger position-fixed";
+            n.style.top = "20px"; n.style.right = "20px"; n.style.zIndex = 1050;
+            n.innerHTML = '<i class="fa fa-exclamation-circle me-2"></i>Could not add to cart!';
+            document.body.appendChild(n);
+            setTimeout(()=>n.remove(),2000);
+        }
+    });
+});
+
+// On page load, set initial price
+$(function() { updatePriceUI(); });
+</script>
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+<style>
+  body { background: #f8f9fa; }
+  .unshipped-header {
+    background: linear-gradient(90deg, #185a9d 0%, #43cea2 100%);
+    color: #fff;
+    padding: 2.5rem 0;
+    text-align: center;
+    margin-bottom: 2rem;
+    border-radius: 0 0 24px 24px;
+    box-shadow: 0 4px 16px rgba(24,90,157,0.12);
+  }
+  .unshipped-header h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+  }
+  .unshipped-header p {
+    font-size: 1.15rem;
+    color: #e2f1ff;
+    margin-bottom: 0;
+  }
+  .unshipped-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+  .unshipped-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 20px rgba(44, 62, 80, 0.08);
+    padding: 1.5rem;
+    margin-top: 2rem;
+    margin-bottom: 3rem;
+  }
+  .table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .table thead {
+    background: #185a9d;
+    color: #fff;
+  }
+  .table th, .table td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-top: 1px solid #eee;
+  }
+  .table th {
+    font-weight: 600;
+    border-top: none;
+  }
+  .table tr:last-child td {
+    border-bottom: 1px solid #eee;
+  }
+  .table tr:hover td {
+    background: #f7fafc;
+  }
+  .table a {
+    color: #185a9d;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .table a:hover {
+    color: #43cea2;
+    text-decoration: underline;
+  }
+  .btn-success {
+    background: #28a745;
+    border: none;
+    border-radius: 8px;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+  }
+  .btn-success:hover {
+    background: #218838;
+  }
+  .btn-success i {
+    margin-right: 0.3rem;
+  }
+</style>
+
+<!-- Header -->
+<div class="unshipped-header">
+  <h1>Unshipped Orders</h1>
+  <p>View and manage unshipped items</p>
+</div>
+
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-10">
+      <div class="unshipped-card">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th><i class="fas fa-receipt me-1"></i> Order</th>
+              <th><i class="fas fa-rupee-sign me-1"></i> Price</th>
+              <th><i class="fas fa-envelope me-1"></i> Customer Email</th>
+              <th><i class="fas fa-calendar-alt me-1"></i> Date Ordered</th>
+              <th><i class="fas fa-truck me-1"></i> Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in orders %}
+              <tr>
+                <td><a href="{% url 'orders' item.id %}"><i class="fas fa-link me-1"></i>{{ item.id }}</a></td>
+                <td>₹{{ item.amount_paid }}</td>
+                <td>{{ item.email }}</td>
+                <td>{{ item.date_ordered }}</td>
+                <td>
+                  <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="shipping_status" value="true">
+                    <input type="hidden" name="num" value="{{ item.id }}">
+                    <button type="submit" class="btn btn-success">
+                      <i class="fas fa-check-circle me-1"></i> Mark Shipped
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div> 
+    </div>
+  </div>
+</div>
+{% endblock %}
